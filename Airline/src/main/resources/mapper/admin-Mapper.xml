@@ -269,6 +269,15 @@
 		WHERE EMP_CODE = #{empCode}
 	</delete>
 	
+	<delete id="deleteEmpMember">
+		DELETE AIR_MEMBER
+		WHERE EMP_CODE = #{empCode}
+	</delete>
+	
+	<delete id="deleteEmpImage">
+		DELETE EMP_IMG WHERE EMP_CODE = #{empCode}
+	</delete>
+	
 	
 <!-- 예매 관련 기능 -->
 	 <resultMap type="com.kh.airline.admin.vo.AdminPassengerScheduleVO" id="passengerSchedule">
@@ -395,24 +404,9 @@
 	
 	<!-- ****** 예매 삭제  -->
 	<delete id="deletePassengerSchedule">
-		DELETE PASS_SCHE_CODE 
-		FROM PASSENGER_SCHEDULE
+		DELETE PASSENGER_SCHEDULE
 		WHERE PASS_SCHE_CODE = #{passScheCode}
 	</delete>
-	
-	<!-- 월 별 매출 합계 조회 -->
-	<!-- <select id="selectSalesForMonthList" resultType="int">
-		SELECT SUM(TICKET_PRICE)
-		FROM PASSENGER_SCHEDULE 
-		WHERE 1 = 1
-		<if test="date != null and !date.equals('')">
-		AND SUBSTR(ORDER_DATE, 4, 2) = (
-										SELECT SUBSTR(TO_CHAR(#{date}, 'YYYY-MM-DD'), 6, 2) 
-										FROM DUAL)
-		</if>
-	</select> -->
-	
-	
 	
 <!-- 운항 관련 기능 -->
 	<resultMap type="com.kh.airline.admin.vo.AdminAirScheduleVO" id="airSchedule">
@@ -430,10 +424,11 @@
 	
 	<!-- 운항 수 조회 -->
 	<select id="countAirSchedule" resultType="int">
-		SELECT COUNT(AIR_SCHE_CODE) FROM AIR_SCHEDULE WHERE 1 = 1
-		<if test="airScheCode != null and !airScheCode.equals('')">
-		AND AIR_SCHE_CODE = #{airScheCode}
+		SELECT COUNT(AIR_SCHE_CODE) FROM AIR_SCHEDULE_V WHERE 1 = 1
+		<if test="planeCode != null and !planeCode.equals('')">
+		AND PLANE_CODE = #{planeCode}
 		</if>
+		AND TO_DATE(ARRIVAL_DATE, 'YYYY-MM-DD HH24:MI:SS') &gt; SYSDATE
 	</select>
 	
 	<!-- 운항 정보 상세 조회 -->
@@ -544,21 +539,21 @@
 					, SPARE_SEAT
 				FROM AIR_SCHEDULE_V
 				WHERE TO_DATE(ARRIVAL_DATE, 'YYYY-MM-DD hh24:mi:ss') &gt; SYSDATE
+				<if test="airScheCode != null and !airScheCode.equals('')">
+				AND AIR_SCHE_CODE LIKE '%'||#{airScheCode}||'%'
+				</if>
+				<if test="planeCode != null and !planeCode.equals('')">
+				AND PLANE_CODE LIKE '%'||#{planeCode}||'%'
+				</if>
+				<if test="pathCode != null and !pathCode.equals('')">
+				AND PATH_CODE LIKE '%'||#{pathCode}||'%'
+				</if>
+				<if test="departureDate != null and !departureDate.equals('')">
+				AND DEPARTURE_DATE LIKE '%'||#{departureDate}||'%'
+				</if>
 				ORDER BY ARRIVAL_DATE DESC))
 		WHERE 1 = 1
 		AND ROW_NUM &gt;= #{startNum} AND ROW_NUM &lt;= #{endNum}
-		<if test="airScheCode != null and !airScheCode.equals('')">
-		AND AIR_SCHE_CODE LIKE '%'||#{airScheCode}||'%'
-		</if>
-		<if test="planeCode != null and !planeCode.equals('')">
-		AND PLANE_CODE LIKE '%'||#{planeCode}||'%'
-		</if>
-		<if test="pathCode != null and !pathCode.equals('')">
-		AND PATH_CODE LIKE '%'||#{pathCode}||'%'
-		</if>
-		<if test="departureDate != null and !departureDate.equals('')">
-		AND DEPARTURE_DATE LIKE '%'||#{departureDate}||'%'
-		</if>
 		ORDER BY ROW_NUM DESC
 		
 	</select>
@@ -715,6 +710,7 @@
 		SET
 		IS_BOOKED = #{passEmail}
 		WHERE SEAT_CODE = #{seatCode}
+		AND AIR_SCHE_CODE = #{airScheCode}
 	</update>
 
 	
@@ -753,6 +749,10 @@
 			, #{orderDate}
 		)
 	</insert>
+	
+	<delete id="deleteSeatInfo">
+	DELETE SEAT_INFO WHERE AIR_SCHE_CODE = #{airScheCode}
+	</delete>
 	
 	<!-- isBooked Check -->
 	<select id="isBookedCheck" resultType="String">
@@ -898,12 +898,12 @@
 		            GROUP BY ORDER_CODE
 		   
 		    ) A
-		  , ( SELECT TO_DATE('2022-01-01','YYYY-MM-DD') + LEVEL - 1 AS DT
+		  , ( SELECT TO_DATE(#{selectedYear}||'-01-01','YYYY-MM-DD') + LEVEL - 1 AS DT
 		        FROM dual 
-		     CONNECT BY LEVEL &lt;= (TO_DATE('2022-12-31','YYYY-MM-DD') 
-		                        - TO_DATE('2022-01-01','YYYY-MM-DD') + 1)
+		     CONNECT BY LEVEL &lt;= (TO_DATE(#{selectedYear}||'-12-31','YYYY-MM-DD') 
+		                        - TO_DATE(#{selectedYear}||'-01-01','YYYY-MM-DD') + 1)
 		    ) B
-		WHERE B.DT = A.ORDER_DATE(+)
+		WHERE TO_CHAR(B.DT, 'YYYY-MM-DD') = A.ORDER_DATE(+)
 		GROUP BY TO_CHAR(B.DT, 'YYYY-MM')
 		ORDER BY TO_CHAR(B.DT, 'YYYY-MM')
 	</select>

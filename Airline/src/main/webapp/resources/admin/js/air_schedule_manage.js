@@ -1,49 +1,82 @@
 
+$(document).ready (function (){
+	$(document).on ("click", '#deleteAirSche', function() {
+	Swal.fire({
+			 title: '삭제 하시겠습니까?',
+			  text: "",
+			   icon: 'warning', showCancelButton: true,
+			    confirmButtonColor: '#3085d6',
+			     cancelButtonColor: '#d33',
+			      confirmButtonText: '승인',
+			       cancelButtonText: '취소' }).then((result) => {
+				 if (result.isConfirmed) {
+						var formId = document.getElementById('formId');
+						formId.action = "/admin/deleteAirSche";
+						formId.submit();
+					}
+			 });
+	});
+});
 
+function changePass(cnt){
+	if(cnt == 4){
+		Swal.fire({
+			 title: '수정 하시겠습니까?',
+			  text: "",
+			   icon: 'warning', showCancelButton: true,
+			    confirmButtonColor: '#3085d6',
+			     cancelButtonColor: '#d33',
+			      confirmButtonText: '승인',
+			       cancelButtonText: '취소' }).then((result) => {
+				 if (result.isConfirmed) {
+						var formId = document.getElementById('formId');
+						document.getElementById('departureDate').value = document.getElementById('datepicker').value + ' ' + document.getElementById('timepicker').value;
+						formId.action = "/admin/updateAirSche";
+						formId.submit();
+					}
+			 });
+	}
+	else{
+		insertAirScheInfo();
+	}
+}
 
-/*new tempusDominus.TempusDominus(document.getElementById('datetimepicker1'), {
-    display: { 
-        components: {
-            seconds: false,
-            useTwentyfourHour: true,
-        },
-        icons: {
-            type: 'icons',
-            time: 'fa fa-solid fa-clock',
-            date: 'fa fa-solid fa-calendar',
-            up: 'fa fa-solid fa-arrow-up',
-            down: 'fa fa-solid fa-arrow-down',
-            previous: 'fa fa-solid fa-chevron-left',
-            next: 'fa fa-solid fa-chevron-right',
-            today: 'fa fa-solid fa-calendar-check',
-            clear: 'fa fa-solid fa-trash',
-            close: 'fas fa-solid fa-xmark'
-        },
-    },
+$('#formId').validate({
+   
+	   debug: false,
+	   
+	   rules: {
+		  gateNum: {
+			 required: true
+			},
+		  basePrice: {
+			 required: true
+			}
+	   },
+	   messages: {
+	      gateNum: {
+	         required: "게이트 번호를 입력해주세요.",
+	      },
+	      basePrice: {
+			required: '가격을 입력해주세요',
+		  }
+	   },
+	   errorElement:'div',
+	   errorPlacement: function (error, element){
+	     	error.insertAfter(element);
+	     	
+	     	error.css('color', 'red');
+	     	error.css('font-size', '12px');
+	   },      
+	   
+	   submitHandler: function(form) {
+		changePass($('#modalFooter').children().length);
+	   }
+	});
     
-});*/
 
-/* $(function() {
-  
- });*/
-/*$('#datetimepicker1').tempusDominus();*/
-/* $('#datetimepicker1').datetimepicker({
-     format: "DD/MM/YYYY HH:mm",
-     minDate: moment()
-   });*/
-/*$(function () {
-            $('#datetimepicker1').datetimepicker({
-                minDate: new Date(),
-                // minDate: '03/06/2019',
-                format: 'MM/DD/YYYY H:s A'
-            });
-        });*/
-        
-//$('#listContainer').children('tbody').children('tr').click(function(){
+
 $('#listContainer').find('tr').click(function(){
-	//alert('11');
-	//alert($(this).find('td:eq(1)').html().substr(0, 3));
-	//alert($(this).find('td:eq(1)').html().substr(10, 3));
 	var airScheCode = $(this).find('td:eq(0)').html();
 	var departurePortCode = $(this).find('td:eq(1)').html().substr(0, 3);
 	var arrivalPortCode = $(this).find('td:eq(1)').html().substr(10, 3);
@@ -57,28 +90,6 @@ function selectAirSche(airScheCode, departurePortCode, arrivalPortCode, planeCod
 	
 	var infoModal = new bootstrap.Modal(document.getElementById('infoModal'));
 	
-	/*$('#datepicker').datepicker({
-		dateFormat: 'YYYY-MM-DD',
-		minDate: 0
-	});*/
-			
-	/*$('#timepicker').timepicker({
-		timeFormat: 'HH:mm:ss',
-		minTime: '0'
-	});*/
-	
-	
-	/*if(arguments.length === 3){
-		airScheCode = arguments[0];
-		planeCode = arguments[1];
-		arrivalPortCode = arguments[2]; 
-	}
-	else{
-		airScheCode = '-';
-		planeCode = arguments[0]; 
-	}*/
-	
-	
 	$.ajax({
    url: '/admin/selectAirSche', //요청경로
     type: 'post',
@@ -86,12 +97,10 @@ function selectAirSche(airScheCode, departurePortCode, arrivalPortCode, planeCod
     success: function(result) {
 	
 	
-	//if(result.spareSeat != undefined){
 	$('#airScheCode').val(airScheCode);
 	
 	$('select[name=planeCode]').val(planeCode).prop('selected',true).attr('readonly', true);
 	
-	/*$('select[name=pathCode]').val(result.pathCode).prop('selected', true).prop('disabled', true);*/
 	$('input[name=departurePortCode]').val(departurePortCode).prop('readonly', true);
 	$('select[name=arrivalPortCode]').empty();
 	var str = $('<option>' + arrivalPortCode + '</option>');
@@ -103,49 +112,34 @@ function selectAirSche(airScheCode, departurePortCode, arrivalPortCode, planeCod
 	$('input[name=basePrice]').val(result.basePrice);
 	$('input[name=spareSeat]').val(result.spareSeat);
 		
-		
-	//}
-	
-	/*else{
-	$('#airScheCode').val(result.airScheCode);
-	$('select[name=planeCode]').val(planeCode).prop('selected',true).attr("disabled", true);
-	$('select[name=departurePortCode]').val(arrivalPortCode).prop('selected', true).prop('disabled', true);
-	$('select[name=arrivalPortCode]').prop('disabled', false);
-	$('select[name=teamCode]').val(result.teamCode).prop('selected', true).attr("disabled", false);
-	$('input[name=gateNum]').val(result.gateNum).attr("disabled", false);
-	
-	$('input[name=departureDate1]').val('').attr("disabled", false);
-	$('input[name=departureDate2]').val('').attr("disabled", false);
-	$('input[name=basePrice]').val(result.basePrice).attr("disabled", false);
-	$('input[name=spareSeat]').val(result.spareSeat);
-	}*/
-	
-	
 	if(result.airScheCode != undefined){
 	var modalFooter = document.getElementById('modalFooter');
 	modalFooter.innerHTML = '';
 	var str = '';
 	
-	str += '<button type="button" class="btn btn-danger" onclick="deleteAirSche();">삭제</button>';
-	str += '<button type="button" class="btn btn-primary" onclick="updateAirSche();">수정</button>';
+	str += '<button type="button" class="btn btn-danger" id="deleteAirSche">삭제</button>';
+	str += '<button type="submit" class="btn btn-primary" id="updateAirSche">수정</button>';
 	str += '<button type="button" class="btn btn-primary" onclick="selectSeatInfo();">좌석 조회</button>';
 	str += '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>';
 	modalFooter.innerHTML += str;
 	
 	}
 
+    
+    
+    
     infoModal.show();
-      
 	
     },
     error: function(){
        alert('실패');
     }
 });
+
 	
 }
 
-function deleteAirSche(){
+/*function deleteAirSche(){
 	var formId = document.getElementById('formId');
 	if(confirm('정말 삭제하시겠습니까?')){
 	formId.action = "/admin/deleteAirSche";
@@ -155,13 +149,13 @@ function deleteAirSche(){
 		return;
 	}
 	
-}
+}*/
 
 function updateAirSche(){
 	var formId = document.getElementById('formId');
 	if(confirm('정말 수정하시겠습니까?')){
 	formId.action = "/admin/updateAirSche";
-	document.getElementById('departureDate').value = document.getElementById('departureDate1').value + ' ' + document.getElementById('departureDate2').value;
+	document.getElementById('departureDate').value = document.getElementById('datepicker').value + ' ' + document.getElementById('timepicker').value;
 	formId.submit();
 	}
 	else{
@@ -178,28 +172,13 @@ function selectSeatInfo(){
 	
 }
 
-
-/*function insertAirSche(planeCode){
-	
-	selectAirSche(planeCode);
-	$('select[name=planeCode]').val(planeCode).prop('selected', true);
-	var modalFooter = document.getElementById('modalFooter');
-	modalFooter.innerHTML = '';
-	var str = '';
-	
-	str += '<button type="button" class="btn btn-primary" onclick="insertAirScheInfo();">추가</button>';
-	str += '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>';
-	
-	modalFooter.innerHTML += str;
-	
-	//SPARE_SEAT의 데이터가 넘어가지 않도록 disabled 속성 추가
-	
-}*/
 function insertAirSche(planeCode){
+	
 	var infoModal = new bootstrap.Modal(document.getElementById('infoModal'));
 	
+	
 	$.ajax({
-   url: '/admin/setInsertAirSche', //요청경로
+   url: '/admin/setInsertAirSche',
     type: 'post',
     data:{'planeCode':planeCode}, 
     success: function(result) {
@@ -237,11 +216,12 @@ function insertAirSche(planeCode){
 		$('input[name=basePrice]').val('');
 		$('input[name=spareSeat]').val('');
 		
+		
 		var modalFooter = document.getElementById('modalFooter');
 		modalFooter.innerHTML = '';
 		var str = '';
 		
-		str += '<button type="button" class="btn btn-primary" onclick="insertAirScheInfo();">추가</button>';
+		str += '<button type="submit" class="btn btn-primary">추가</button>';
 		str += '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>';
 		
 		modalFooter.innerHTML += str;
@@ -250,42 +230,74 @@ function insertAirSche(planeCode){
 		infoModal.show();
       
       
+    
+      
     },
     error: function(){
        alert('실패');
     }
 	});
 	
-	
-	
-	
 }
+
+$("select[name=location]").change(function(){
+		var departurePortCode = $('input[name=departurePortCode]').val();
+		var arrivalPortCode = $('select[name=arrivalPortCode]').val();
+		
+		$.ajax({
+		   url: '/admin/selectPathCode',
+		    type: 'post',
+		    data:{'departurePortCode':departurePortCode, 'arrivalPortCode':arrivalPortCode}, //필요한 데이터 '데이터이름':값
+		    success: function(result) {
+			$('input[name=pathCode]').val(result);
+		    },
+		    error: function(){
+		       alert('실패');
+		    }
+		});
+});
+		
+
 
 function insertAirScheInfo(){
 	document.getElementById('departureDate').value = document.getElementById('datepicker').value + ' ' + document.getElementById('timepicker').value;
-	//document.getElementById('departureDate').value = document.getElementById('datetimepicker1').value;
 	
 	var departurePortCode = $('input[name=departurePortCode]').val();
 	var arrivalPortCode = $('select[name=arrivalPortCode]').val();
 	
-	
 	$.ajax({
-   url: '/admin/selectPathCode', //요청경로
-    type: 'post',
-    data:{'departurePortCode':departurePortCode, 'arrivalPortCode':arrivalPortCode}, //필요한 데이터 '데이터이름':값
-    success: function(result) {
-	$('input[name=pathCode]').val(result);
-	var formId = document.getElementById('formId');
-	formId.action = "/admin/insertAirSche";
-	formId.submit();
-    },
-    error: function(){
-      //ajax 실행 실패 시 실행되는 구간
-       alert('실패');
-    }
+	   url: '/admin/selectPathCode',
+	    type: 'post',
+	    data:{'departurePortCode':departurePortCode, 'arrivalPortCode':arrivalPortCode}, //필요한 데이터 '데이터이름':값
+	    success: function(result) {
+		
+		$('input[name=pathCode]').val(result);
+		
+		Swal.fire({
+			 title: '추가 하시겠습니까?',
+			  text: "",
+			   icon: 'warning', showCancelButton: true,
+			    confirmButtonColor: '#3085d6',
+			     cancelButtonColor: '#d33',
+			      confirmButtonText: '승인',
+			       cancelButtonText: '취소' }).then((result) => {
+				 if (result.isConfirmed) {
+						var formId = document.getElementById('formId');
+						formId.action = "/admin/insertAirSche";
+						formId.submit();
+					}
+			 });
+		
+		/*var formId = document.getElementById('formId');
+		formId.action = "/admin/insertAirSche";
+		formId.submit();*/
+	    },
+	    error: function(){
+	       alert('실패');
+	    }
 	});
 	
 }
 
-	
+
 

@@ -2,6 +2,9 @@ package com.kh.airline.member.controller;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -94,8 +97,12 @@ public class MemberController {
 	//아이디 찾기
 	@ResponseBody
 	@PostMapping("/findId")
-	public void findId(AirMemberVO airMemberVO) {
+	public boolean findId(AirMemberVO airMemberVO) {
 		String memId = memberService.selectMemId(airMemberVO);
+		
+		if(memberService.selectMemEmail(memId) == null & memberService.selectMemEmail(memId).equals("")) {
+			return false;
+		};
 		
 		try {
 			//메일보내기
@@ -111,29 +118,41 @@ public class MemberController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		return true;
 		
 	}
 	//비밀번호 찾기
 	@ResponseBody
 	@PostMapping("/findPw")
-	public void findPw(AirMemberVO airMemberVO) {
-		String getTempPw = getTempPw();
-		airMemberVO.setMemPw(getTempPw);
-		memberService.updateMemPw(airMemberVO);
-		try {
-			//메일보내기
-			MimeMessage message = mailSender.createMimeMessage();
-			MimeMessageHelper messageHelper;
-			messageHelper = new MimeMessageHelper(message, true, "UTF-8");
-			messageHelper.setFrom("");
-			messageHelper.setTo(airMemberVO.getMemEmail());
-			messageHelper.setSubject("KH Airline 임시 비밀번호 입니다.");
-			messageHelper.setText("임시 비밀번호 :"+ getTempPw);
-			mailSender.send(message);
-		} catch (MessagingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	public Boolean findPw(AirMemberVO airMemberVO) {
+		String memEmail = memberService.selectMemEmail(airMemberVO.getMemId());
+		String memId = memberService.selectMemId(airMemberVO);
+		
+		  if(memEmail == null & memEmail.equals("")) { 
+			  return false; 
+			  } 
+		  else if(memId == null & memId.equals("")) { 
+			  return false; 
+		  } 
+		  else {
+			  String getTempPw = getTempPw(); airMemberVO.setMemPw(getTempPw);
+			  memberService.updateMemPw(airMemberVO);
+			try {
+				//메일보내기
+				MimeMessage message = mailSender.createMimeMessage();
+				MimeMessageHelper messageHelper;
+				messageHelper = new MimeMessageHelper(message, true, "UTF-8");
+				messageHelper.setFrom("");
+				messageHelper.setTo(airMemberVO.getMemEmail());
+				messageHelper.setSubject("KH Airline 임시 비밀번호 입니다.");
+				messageHelper.setText("임시 비밀번호 :"+ getTempPw);
+				mailSender.send(message);
+			} catch (MessagingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			  return true; 
+		  }
 	}
 	//아이디 중복확인
 	@ResponseBody
@@ -195,10 +214,7 @@ public class MemberController {
 	public String regMemImg(MemImgVO memImgVO, HttpSession session, MultipartHttpServletRequest multi) {
 			//회원 아이디
 			String memId = ((AirMemberVO)session.getAttribute("loginInfo")).getMemId();
-			//회원 이미지가 있으면 삭게
-			if(memberService.selectMemImg(memId) != null) {
-				memberService.deleteMemImg(memId);
-			}
+				
 			//이미지 통
 			List<MemImgVO> memImgList = new ArrayList<MemImgVO>();
 			//다음에 들어갈 IMG_CODE 값을 조회
@@ -209,18 +225,28 @@ public class MemberController {
 			//첨부파일이 저장될 위치 지정
 			String uploadPath = "D:\\Git\\workspaceSTS\\Airline\\src\\main\\webapp\\resources\\member\\img\\";
 			
+			//회원 이미지가 있으면 삭제
+			if(memberService.selectMemImg(memId) != null) {
+			try {
+					Path path = Paths.get(uploadPath + memberService.selectMemImg(memId));
+					Files.deleteIfExists(path);
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+					memberService.deleteMemImg(memId);
+			}
 			//name이 "memImg"인 input태그의 파일 정보를 가져 옴. 
 			MultipartFile file = multi.getFile("memImg");
-			
 			//첨부하고자 하는 파일명
 			String originFileName = file.getOriginalFilename();
-
+			
 			MemImgVO vo = new MemImgVO();
 			
 			if(!originFileName.equals("")) {
+				//파일 업로드
 				//첨부할 파일명
 				String attachedFileName = System.currentTimeMillis() + "_" + originFileName;
-				//파일 업로드
+				
 				//매개변수로 경로 및 파일명을 넣어줌
 				try {
 					file.transferTo(new File(uploadPath + attachedFileName));
@@ -229,10 +255,6 @@ public class MemberController {
 					vo.setAttachedMemImgName(attachedFileName);
 					vo.setMemId(memId);
 					memImgList.add(vo);
-					System.out.println(vo.getMemId());
-					System.out.println(vo.getMemImgCode());
-					System.out.println(vo);
-					
 				} catch (IllegalStateException e) {
 					e.printStackTrace();
 				} catch (IOException e) {

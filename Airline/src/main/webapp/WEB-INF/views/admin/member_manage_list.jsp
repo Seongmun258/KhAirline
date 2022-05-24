@@ -6,71 +6,56 @@
 <head>
 <meta charset="UTF-8">
 <title>Insert title here</title>
+<link href="/resources/admin/css/adminCommon.css" rel="stylesheet">
 </head>
 <body>
-	<div class="row">
-		<div id="searchContainer" class="col-8">
-		<form action="/admin/memberManage" method="get">
-			<table class="table table-light">
-				<tr>
-					<td>
-						회원 아이디 <input type="text" class="form-control" name="memId">
-					</td>
-					<td>
-						<input type="submit" class="btn btn-primary" value="검색">
-					</td>
-				</tr>
-				
-			</table>
-		</form>
+	<div class="row mainContainer" id="mainContainer">
+		<div id="searchContainer" class="col-12">
+			<form action="/admin/memberManage" method="get">
+				<div class="input-group">
+					<span class="input-group-text" id="basic-addon1">회원 아이디</span> 
+					<input type="text" class="form-control" name="memId">
+					<input type="submit" class="btn btn-danger btn-outline-secondary btnClass" value="검색">
+				</div>
+			</form>
 		</div>
-		
-		<div id="listContainer" class="col-8">
-			<table class="table table-light">
+		<div id="listContainer" class="col-12">
+			<table class="styled">
 			<thead>
-				<tr >
+				<tr>
 					<td>
 						No.
 					</td>
-					
 					<td>
 						회원 아이디
 					</td>
-					
 					<td>
 						회원 이름
 					</td>
-					
 				</tr>
 				</thead>
 					<c:forEach items="${memberList }" var="list">
-				<tr onclick="selectMember('${list.memId}');" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
-						<td>
-						${list.rowNum }
-						</td>
-						
-						<td>
-							${list.memId }
-						</td>
-						
-						<td>
-							${list.memName }
-						</td>
-						
-				</tr>
+						<tr onclick="selectMember('${list.memId}');" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+							<td>
+							${list.rowNum }
+							</td>
+							
+							<td>
+								${list.memId }
+							</td>
+							
+							<td>
+								${list.memName }
+							</td>
+						</tr>
 					</c:forEach>
 			</table>
 		</div>
 		
-		<div class="row">
-		
-		<!-- <div class="col-1">
-			<input type="button" class="btn btn-primary" value="회원 추가" onclick="insertMember();">
-		</div> -->
-		
-			<div class="col" style="text-align: center;" >
+		<div class="row" id="pagingContainer">
+			<div class="col-12">
 			<nav aria-label="...">
-			  <ul class="pagination">
+			  <ul class="pagination justify-content-center admin">
 			    <li class="page-item <c:if test="${!searchVO.prev }">disabled</c:if>">
 			      <a class="page-link" href="admin/memberManage?nowPage=${searchVO.beginPage - 1 }">Previous</a>
 			    </li>
@@ -86,21 +71,19 @@
 		</div>
 		
 		
-		<div>
+		<div style="text-align: center;">
 			
 			<div id="modalDiv">
-				<div class="modal fade" id="infoModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+				<div class="modal fade" id="infoModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true" style="text-align: center;">
 				  <div class="modal-dialog modal-lg">
-				    <div class="modal-content">
+				    <div class="modal-content" style="width: 50em;">
+					<form action="" method="post" id="formId">
 				      <div class="modal-header">
 				        <h5 class="modal-title" id="staticBackdropLabel">회원 정보</h5>
 				        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 				      </div>
 				      <div class="modal-body" id='modalBody'>
-				        ...
-				        
 				        <div>
-							<form action="" method="post" id="formId">
 							<table class="table table-bordered border-secondary">
 							<tr>
 							<td>
@@ -117,15 +100,15 @@
 							</td>
 							<td>
 							GENDER<br>
-							<input type="radio" name="gender" id="male" value="MALE"> 남
+							<input type="radio" name="gender" id="male" value="MALE" checked> 남
 							<input type="radio" name="gender" id="female" value="FEMALE"> 여
 							</td>
 							</tr>
 							<tr>
 							<td>
-							<input type="text" id="memPhone1" value="" class="form-control"  maxlength="3">
-							<input type="text" id="memPhone2" value="" class="form-control"  maxlength="4">
-							<input type="text" id="memPhone3" value="" class="form-control"  maxlength="4">
+							<input type="text" name="memPhone1" id="memPhone1" value="" class="form-control"  maxlength="3">
+							<input type="text" name="memPhone2" id="memPhone2" value="" class="form-control"  maxlength="4">
+							<input type="text" name="memPhone3" id="memPhone3" value="" class="form-control"  maxlength="4">
 							<input type="hidden" name="memPhone" id="memPhone">
 							</td>
 							<td>
@@ -142,13 +125,13 @@
 							</td>
 							<td>
 							EMAIL
-							<input type="email" name="memEmail" class="form-control" value="">
+							<input type="email" name="memEmail" class="form-control" value="" required>
 							</td>
 							</tr>
 							<tr>
 							<td>
 							BIRTH_DATE
-							<input type="date" name="birthDate" class="form-control" value="">
+							<input type="date" name="birthDate" class="form-control" value="" required>
 							</td>
 							<td>
 							POINTS
@@ -160,27 +143,27 @@
 							</td>
 							<td>
 							IS_ADMIN
-							<input type="text" name="isAdmin" class="form-control" value="">
+							<input type="text" name="isAdmin" class="form-control" value="" required>
 							</td>
 							</tr>
 							</table>
-							</form>
 							</div>
 				        
 				      </div>
 				      <div class="modal-footer" id="modalFooter">
-				        <button type="button" class="btn btn-danger" onclick="deleteMember();">삭제</button>
-				        <button type="button" class="btn btn-primary" onclick="updateMember();">수정</button>
+				        <button type="button" class="btn btn-danger" id="deleteMember">삭제</button>
+				        <button type="submit" class="btn btn-primary" id="updateMember">수정</button>
 				        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 				      </div>
+					</form>
 				    </div>
 				  </div>
 				</div>
 			</div>
 		</div>
 	</div>
-	<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 	<script type="text/javascript"
 		src="/resources/admin/js/member_manage.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 </body>
 </html>
